@@ -24,66 +24,68 @@ public class PortalListener implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
         Player p = e.getPlayer();
-        // only check when the player changed block coordinates
-        if (e.getFrom().getBlockX() == e.getTo().getBlockX()
-                && e.getFrom().getBlockY() == e.getTo().getBlockY()
-                && e.getFrom().getBlockZ() == e.getTo().getBlockZ()) return;
+
+        // Check move across block boundaries
+        if (e.getFrom().getBlockX() == e.getTo().getBlockX() &&
+            e.getFrom().getBlockY() == e.getTo().getBlockY() &&
+            e.getFrom().getBlockZ() == e.getTo().getBlockZ()) return;
+
+        // Permission check for using portals
+        if (!p.hasPermission("portals.use") && !p.hasPermission("voltrexsportals.use")) return;
 
         long now = System.currentTimeMillis();
         long cooldown = plugin.getConfig().getLong("cooldown-ms", 2000);
-        Long last = lastTeleport.get(p.getUniqueId());
-        if (last != null && now - last < cooldown) return;
+        long last = lastTeleport.getOrDefault(p.getUniqueId(), 0L);
+        if (now - last < cooldown) return;
 
         for (Portal portal : plugin.getPortalManager().getAll()) {
-            Location a = portal.getPos1();
-            Location b = portal.getPos2();
+            Location a = portal.getPos1(), b = portal.getPos2();
             if (a == null || b == null) continue;
-            // portal only works if the player is in the same world where the portal region is defined
             if (!p.getWorld().getName().equals(a.getWorld().getName())) continue;
 
-            double minX = Math.min(a.getX(), b.getX());
-            double maxX = Math.max(a.getX(), b.getX()) + 1; // include block
-            double minY = Math.min(a.getY(), b.getY());
-            double maxY = Math.max(a.getY(), b.getY()) + 1;
-            double minZ = Math.min(a.getZ(), b.getZ());
-            double maxZ = Math.max(a.getZ(), b.getZ()) + 1;
-
+            double minX = Math.min(a.getX(), b.getX()), maxX = Math.max(a.getX(), b.getX()) + 1;
+            double minY = Math.min(a.getY(), b.getY()), maxY = Math.max(a.getY(), b.getY()) + 1;
+            double minZ = Math.min(a.getZ(), b.getZ()), maxZ = Math.max(a.getZ(), b.getZ()) + 1;
             Location loc = p.getLocation();
-            if (loc.getX() >= minX && loc.getX() <= maxX
-                    && loc.getY() >= minY && loc.getY() <= maxY
-                    && loc.getZ() >= minZ && loc.getZ() <= maxZ) {
-                // check blacklists (LuckPerms primary group if LP present)
+            
+            if (loc.getX() >= minX && loc.getX() <= maxX &&
+                loc.getY() >= minY && loc.getY() <= maxY &&
+                loc.getZ() >= minZ && loc.getZ() <= maxZ) {
+                
+                // LuckPerms blacklist check
                 var lp = plugin.getLuckPermsApi();
                 if (lp != null && portal.getBlacklistedGroups() != null && !portal.getBlacklistedGroups().isEmpty()) {
                     var user = lp.getUserManager().getUser(p.getUniqueId());
-                    if (user != null) {
-                        String primary = user.getPrimaryGroup();
-                        if (portal.getBlacklistedGroups().stream().anyMatch(g -> g.equalsIgnoreCase(primary))) {
-                            p.sendMessage(Utils.colorize(plugin.getConfig().getString("icons.error", "&#FF0000 ❌") + " " + plugin.getConfig().getString("prefix") + "You are not allowed to use this portal."));
-                            return;
-                        }
+                    if (user != null && portal.getBlacklistedGroups().stream()
+                        .anyMatch(g -> g.equalsIgnoreCase(user.getPrimaryGroup()))) {
+                        p.sendMessage(Utils.colorize(plugin.getConfig().getString("prefix") +
+                            plugin.getConfig().getString("icons.error") +
+                            " You are not allowed to use this portal."));
+                        return;
                     }
                 }
 
-                // destination world
-                String dest = portal.getDestinationWorld();
-                if (dest == null || dest.isEmpty()) {
-                    p.sendMessage(Utils.colorize(plugin.getConfig().getString("icons.error", "&#FF0000 ❌") + " " + plugin.getConfig().getString("prefix") + "Portal destination not configured."));
-                    return;
-                }
-                var world = Bukkit.getWorld(dest);
-                if (world == null) {
-                    p.sendMessage(Utils.colorize(plugin.getConfig().getString("icons.error", "&#FF0000 ❌") + " " + plugin.getConfig().getString("prefix") + "Destination world '" + dest + "' not found."));
+                // Teleport destination logic
+                String worldName = portal.getDestinationWorld();
+                double x = portal.getDestinationX(), y = portal.getDestinationY(), z = portal.getDestinationZ();
+                var destWorld = Bukkit.getWorld(worldName);
+                if (worldName == null || worldName.isEmpty() || destWorld == null) {
+                    p.sendMessage(Utils.colorize(plugin.getConfig().getString("prefix") +
+                        plugin.getConfig().getString("icons.error") +
+                        " Destination not configured."));
                     return;
                 }
 
-                p.teleport(world.getSpawnLocation());
+                p.teleport(new Location(destWorld, x, y, z));
                 if (plugin.getConfig().getBoolean("sound-on-teleport", true)) {
                     p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
                 }
+
                 lastTeleport.put(p.getUniqueId(), now);
-                p.sendMessage(Utils.colorize(plugin.getConfig().getString("icons.success", "&#00FF26 ✅") + " " + plugin.getConfig().getString("prefix") + "Teleported to " + dest));
-                return; // stop checking other portals for this movement
+                p.sendMessage(Utils.colorize(plugin.getConfig().getString("prefix") +
+                    plugin.getConfig().getString("icons.success") +
+                    " Teleported to " + worldName));
+                return;
             }
         }
     }
