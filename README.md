@@ -4,5 +4,5 @@ A Minecraft plugin for paper 1.21 with easy configurations to create simple port
 # Commands
 /portal wand - Give the selection wand
 /portal create <name> - Create a portal with your selected positions using the wand
-/portal delete <name> &7- Delete a portal
+/portal delete <name> - Delete a portal
 /portal reload - Reload config and portals
