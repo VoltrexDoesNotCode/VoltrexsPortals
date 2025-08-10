@@ -1,0 +1,14 @@
+name: VoltrexsPortals
+main: com.voltrexportals.VoltrexsPortals
+version: 1.0.0
+api-version: "1.21"
+description: Voltrex's Portals plugin
+softdepend:
+  - LuckPerms
+commands:
+  portal:
+    description: Voltrex's Portals main command
+    usage: /portal <wand|create|delete|reload>
+  "voltrexsportals:portal":
+    description: Voltrex's Portals namespaced command
+    usage: /portal <wand|create|delete|reload>
