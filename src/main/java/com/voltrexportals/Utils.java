@@ -1,6 +1,6 @@
 package com.voltrexportals;
 
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +19,7 @@ public class Utils {
         }
         m.appendTail(buffer);
 
-        // Translate & codes to Bukkit colors
+        // Translate & codes to Bungee color codes
         return ChatColor.translateAlternateColorCodes('&', buffer.toString());
     }
 }
