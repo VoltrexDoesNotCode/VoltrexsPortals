@@ -1,0 +1,12 @@
+# Voltrex's Portals configuration
+prefix: "&#9F00FFVoltrexsPortals &7► &e"
+icons:
+  success: "&#00FF26 ✅"
+  error: "&#FF0000 ❌"
+  info: "&#F1FF00 ⓘ"
+sound-on-teleport: true
+discord-invite: "https://discord.gg/yourinvite"
+wand-item-name: "&eVoltrex Wand"
+cooldown-ms: 1000 # cooldown between teleports per player (ms)
+portals-folder: "portals"
+use-luckperms: true
