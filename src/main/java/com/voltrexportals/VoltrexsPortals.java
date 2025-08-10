@@ -12,6 +12,10 @@ public final class VoltrexsPortals extends JavaPlugin {
     private NamespacedKey wandKey;
     private LuckPerms luckPermsApi; // may be null if not installed
 
+    // Keep single instances so commands/listeners share state
+    private WandListener wandListener;
+    private PortalListener portalListener;
+
     public NamespacedKey getWandKey() {
         return wandKey;
     }
@@ -22,6 +26,14 @@ public final class VoltrexsPortals extends JavaPlugin {
 
     public LuckPerms getLuckPermsApi() {
         return luckPermsApi;
+    }
+
+    public WandListener getWandListener() {
+        return wandListener;
+    }
+
+    public PortalListener getPortalListener() {
+        return portalListener;
     }
 
     @Override
@@ -47,8 +59,12 @@ public final class VoltrexsPortals extends JavaPlugin {
         portalManager = new PortalManager(this);
         portalManager.loadAll();
 
-        getServer().getPluginManager().registerEvents(new WandListener(this), this);
-        getServer().getPluginManager().registerEvents(new PortalListener(this), this);
+        // create and save listener references so command can interact with the same state
+        wandListener = new WandListener(this);
+        portalListener = new PortalListener(this);
+
+        getServer().getPluginManager().registerEvents(wandListener, this);
+        getServer().getPluginManager().registerEvents(portalListener, this);
 
         var cmd = getCommand("portal");
         if (cmd != null) cmd.setExecutor(new PortalCommand(this));
