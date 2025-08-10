@@ -13,3 +13,5 @@ public class Utils {
         if (input == null) return "";
         // replace hex tokens like &#9F00FF with ChatColor.of("#9F00FF") string
         Matcher m = 
+    }
+}
