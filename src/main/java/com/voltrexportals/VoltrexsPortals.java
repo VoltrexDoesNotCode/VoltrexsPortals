@@ -60,3 +60,4 @@ public final class VoltrexsPortals extends JavaPlugin {
     public void onDisable() {
         getLogger().info("Voltrex's Portals disabled");
     }
+}
